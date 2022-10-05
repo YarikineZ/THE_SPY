@@ -3,6 +3,7 @@ import 'roles_page.dart';
 
 class StartPage extends StatefulWidget {
   const StartPage({Key? key}) : super(key: key);
+  static const routeName = '/start';
 
   @override
   State<StartPage> createState() => _StartPageState();
@@ -44,24 +45,13 @@ class _StartPageState extends State<StartPage> {
             IconButton(
                 color: _canStartGame() ? Colors.white : Colors.grey,
                 onPressed: () {
-                  if (_canStartGame()) {
-                    print("PUSHING VALUES $_values");
-                    Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      '/roles',
-                      (Route<dynamic> route) => false,
-                      arguments: _values,
-                    );
-                  }
-
-                  /*
-                      ? MaterialPageRoute(
-                          builder: (context) => RolesScreen(players: _values))
-                      //удалить последнюю если пустая
-                      : null; //вызвавть поп ап
-                      */
+                  Navigator.pushNamed(
+                    context,
+                    RolesScreen.routeName,
+                    arguments: _values,
+                  );
                 },
-                icon: Icon(Icons.start))
+                icon: Icon(Icons.start)),
           ],
         ),
         body: Container(

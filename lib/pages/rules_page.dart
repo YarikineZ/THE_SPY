@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class RulesScreen extends StatefulWidget {
   const RulesScreen({Key? key}) : super(key: key);
+  static const routeName = '/rules';
   @override
   State<RulesScreen> createState() => _RulesScreenState();
 }

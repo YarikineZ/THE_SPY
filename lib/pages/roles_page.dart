@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 
 class RolesScreen extends StatelessWidget {
+  static const routeName = '/roles';
   final List players;
 
   const RolesScreen({super.key, required this.players});
