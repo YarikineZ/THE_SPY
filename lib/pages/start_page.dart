@@ -159,7 +159,6 @@ class _StartPageState extends State<StartPage> {
     //Если нет активных инпутов, то создаем окно, делаем его активным
     //Учли есть активное окно, то делаем все окна неактивными, удаляем пустые
     //говнокод
-    //print("values: $_values, ${_values.length}");
     if (_values.length > 0) {
       if (_values.last == "") {
         //мб не быть last
@@ -181,7 +180,6 @@ class _StartPageState extends State<StartPage> {
     setState(() {
       focusStates.add(FocusNode());
       _values.add("");
-      print("values: $_values");
       focusStates[_values.length - 1].requestFocus();
     });
   }
