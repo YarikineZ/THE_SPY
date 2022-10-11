@@ -25,123 +25,127 @@ class _StartPageState extends State<StartPage> {
   }
 
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text("ШПИОН"), //обернууть в геншн и мидл клик
-          leading: SizedBox(
-            child: Row(
-              children: [
-                IconButton(
-                    //required: () {_values.length>0},
-                    enableFeedback: true,
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/rules');
-                    },
-                    icon: Icon(Icons.help))
-              ],
-            ),
-          ),
-          actions: [
-            IconButton(
-                color: _canStartGame() ? Colors.white : Colors.grey,
+    return SafeArea(
+      child: Scaffold(
+          appBar: AppBar(
+            title: const Text("Игроки"),
+            //обернууть в геншн и мидл клик
+            leading: IconButton(
+                //required: () {_values.length>0},
+                enableFeedback: true,
                 onPressed: () {
-                  Navigator.pushNamed(
-                    context,
-                    RolesScreen.routeName,
-                    arguments: _values,
-                  );
+                  Navigator.pushNamed(context, '/rules');
                 },
-                icon: Icon(Icons.start)),
-          ],
-        ),
-        body: Container(
-          padding: const EdgeInsets.all(20.0),
-          child: Stack(
-            alignment: AlignmentDirectional.topStart,
-            //mainAxisAlignment: MainAxisAlignment.spaceAround,
+                icon: Icon(Icons.help)),
+            actions: [
+              IconButton(
+                  color: _canStartGame() ? Colors.white : Colors.grey,
+                  onPressed: () {
+                    Navigator.pushNamed(
+                      context,
+                      RolesScreen.routeName,
+                      arguments: _values,
+                    );
+                  },
+                  icon: const Icon(Icons.start)),
+            ],
+          ),
+          bottomSheet: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              GestureDetector(
-                  //TODO как сделать так чтобы был на полный экран? Не было button overloaded?
-                  onTap: _onCenterClick,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Expanded(
-                        child: Container(
-                          alignment: AlignmentDirectional.bottomCenter,
-                          color: Colors.transparent,
-                        ),
-                      ),
-                      Container(
-                        //Зафиксировать внизу чтобы не скакал с клавиатурой
-                        padding: const EdgeInsets.fromLTRB(30, 0, 0, 30),
-                        decoration: BoxDecoration(color: Colors.transparent),
-                        child: Row(
-                          children: const [
-                            Icon(
-                              Icons.add_circle,
-                              size: 30.0,
-                            ),
-                            Text(
-                              "  Игроки",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20.0),
-                            ),
-                          ],
-                        ),
-                      )
-                    ],
-                  )),
-              ListView.builder(
-                shrinkWrap: true,
-                itemCount: _values.length,
-                itemBuilder: (context, index) => _row(index),
+              StartButton(
+                width: 200.0, //double.infinity,
+                borderRadius: BorderRadius.circular(20),
+                onPressed: () {},
+                child: const Text("Начать"),
               ),
             ],
           ),
-        ));
+          body: Container(
+            padding: const EdgeInsets.all(20.0),
+            //color: Colors.green,
+            child: Stack(
+              children: [
+                GestureDetector(
+                    onTap: _onCenterClick,
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            //без цвета контейнер сужается до строки
+                            color: Colors.transparent,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                Icon(
+                                  Icons.touch_app,
+                                  size: 30.0,
+                                  color: Colors.grey,
+                                ),
+                                Text(
+                                  "  Добавить игроков",
+                                  style: TextStyle(
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20.0),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    )),
+                ListView.builder(
+                  shrinkWrap:
+                      true, //хз что это, но если false, то GerionDetector не работает
+                  itemCount: _values.length,
+                  itemBuilder: (context, index) => _row(index),
+                ),
+              ],
+            ),
+          )),
+    );
   }
 
 //Почему мы не добавляем возвращаемый функцией тип?
   _row(int index) {
     return Dismissible(
       background: Container(
-        color: Colors.red,
         alignment: AlignmentDirectional.centerEnd,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(0.0, 0.0, 10.0, 0.0),
-          child: Icon(
-            Icons.delete,
-            color: Colors.white,
-          ),
+        padding: EdgeInsets.only(right: 10.0),
+        margin: const EdgeInsets.symmetric(vertical: 5.0),
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15), color: Colors.red),
+        child: const Icon(
+          Icons.delete,
+          color: Colors.white,
         ),
       ),
-      //ПРОБЛЕМА В KEY
       key: Key(_values[index]),
       direction: DismissDirection.endToStart,
-      //onDismissed: _delRow(direction, key),
-      onDismissed: (direction) {
-        _delRow(direction, index);
-      },
-      child: Row(
-        children: [
-          Text('$index'),
-          SizedBox(
-            width: 30.0,
+      onDismissed: (direction) => _delRow(direction, index),
+      dismissThresholds: {DismissDirection.endToStart: 0.5},
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
+        margin: const EdgeInsets.symmetric(vertical: 3.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          color: Colors.black26,
+        ),
+        child: TextFormField(
+          style: TextStyle(fontSize: 18),
+          initialValue: _values[index], //костыль?
+          focusNode: focusStates[index],
+          onFieldSubmitted: _onCenterClick,
+          autocorrect: false,
+          decoration: const InputDecoration(
+            border: InputBorder.none,
+            hintText: "Имя",
           ),
-          Expanded(
-              child: TextFormField(
-            textCapitalization: TextCapitalization.characters,
-            initialValue: _values[index],
-            focusNode: focusStates[index],
-            onFieldSubmitted: _onCenterClick,
-            onChanged: (val) {
-              _onUpdate(index, val); //откуда взялся VAL?
-            },
-          )),
-        ],
+          onChanged: (val) {
+            _onUpdate(index, val); //откуда взялся VAL?
+          },
+        ),
       ),
     );
   }
@@ -205,4 +209,47 @@ class _StartPageState extends State<StartPage> {
 
   bool _canStartGame() =>
       _values.length >= 3 && _values.last != "" ? true : false;
+}
+
+class StartButton extends StatelessWidget {
+  final BorderRadiusGeometry? borderRadius;
+  final double? width;
+  final double height;
+  final Gradient gradient;
+  final VoidCallback? onPressed;
+  final Widget child;
+
+  const StartButton({
+    Key? key,
+    required this.onPressed,
+    required this.child,
+    this.width,
+    this.height = 44.0,
+    this.borderRadius,
+    this.gradient = const LinearGradient(
+        colors: [Color.fromARGB(255, 88, 100, 101), Colors.indigo]),
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final borderRadius = BorderRadius.circular(15);
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        gradient: gradient,
+        borderRadius: borderRadius,
+      ),
+      child: ElevatedButton(
+        onPressed: onPressed,
+        // style: ButtonStyle(
+        //     backgroundColor: MaterialStateProperty.all(Colors.transparent),
+        //     //padding: MaterialStateProperty.all(EdgeInsets.all(50)),
+
+        //     textStyle: MaterialStateProperty.all(
+        //         TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
+        child: child,
+      ),
+    );
+  }
 }
