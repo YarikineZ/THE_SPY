@@ -8,7 +8,7 @@ import 'package:the_spy/pages/timer_page.dart';
 //import 'package:the_spy/pages/simple_form.dart';
 
 void main() => runApp(MaterialApp(
-      theme: ThemeData.dark(),
+      theme: ThemeData.light(),
       debugShowCheckedModeBanner: false,
       home: const StartPage(),
       routes: {
