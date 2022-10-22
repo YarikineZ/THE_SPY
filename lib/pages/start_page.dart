@@ -11,47 +11,50 @@ class StartPage extends StatefulWidget {
 }
 
 class _StartPageState extends State<StartPage> {
+  Widget playersIsland = PlayersIsland();
+  Widget locationIsland = LocationsIsland();
+  Widget timerIsland = TimerIsland();
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     List<TextEditingController> _controllers;
-    int players = 3;
   }
 
   Widget build(BuildContext context) {
     return SafeArea(
         child: Scaffold(
-            appBar: AppBar(
-              backgroundColor: Colors.transparent,
-              foregroundColor: Colors.black,
-              title: const Text("Новая игра"),
-              elevation: 0,
-              leading: IconButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/rules');
-                  },
-                  icon: Icon(
-                    Icons.help_outline,
-                    size: mainScreenIconsSize,
-                  )),
-            ),
-            body: Column(
-              children: [
-                PlayersIsland(),
-                LocationsIsland(),
-                TimerIsland(),
-                Expanded(
-                  child: Container(color: Colors.transparent),
-                ),
-                BottomSheet(),
-              ],
-            )));
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.black,
+        title: const Text("Новая игра"),
+        elevation: 0,
+        leading: IconButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/rules');
+            },
+            icon: Icon(
+              Icons.help_outline,
+              size: mainScreenIconsSize,
+            )),
+      ),
+      body: ListView(
+        physics: ClampingScrollPhysics(),
+        children: [
+          playersIsland,
+          locationIsland,
+          timerIsland,
+          //TimerIsland_v2(),
+        ],
+      ),
+      bottomSheet: BottomSheet(5),
+    ));
   }
 }
 
 class BottomSheet extends StatelessWidget {
-  const BottomSheet({Key? key}) : super(key: key);
+  const BottomSheet(int players, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -93,13 +96,29 @@ class BottomSheet extends StatelessWidget {
 }
 
 class PlayersIsland extends StatefulWidget {
-  const PlayersIsland({Key? key}) : super(key: key);
+  const PlayersIsland({
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<PlayersIsland> createState() => _PlayersIslandState();
 }
 
 class _PlayersIslandState extends State<PlayersIsland> {
+  int players = 3;
+
+  void _inc() {
+    setState(() {
+      players += 1;
+    });
+  }
+
+  void _dec() {
+    setState(() {
+      players > 3 ? players -= 1 : players;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -108,6 +127,7 @@ class _PlayersIslandState extends State<PlayersIsland> {
         decoration: cardDecoration(),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
               "Игроки",
@@ -116,17 +136,27 @@ class _PlayersIslandState extends State<PlayersIsland> {
             Container(
                 child: Row(
               children: [
-                Icon(
-                  Icons.do_not_disturb_on_outlined,
-                  size: mainScreenIconsSize,
+                IconButton(
+                  padding: const EdgeInsets.all(0.0),
+                  icon: Icon(Icons.do_not_disturb_on_outlined,
+                      size: mainScreenIconsSize,
+                      color: players > 3 ? Colors.black : Colors.grey),
+                  onPressed: () => _dec(),
                 ),
-                SizedBox(width: 15),
-                Text("3", style: TextStyle(fontSize: 20)),
-                SizedBox(width: 15),
-                Icon(
-                  Icons.add_circle_outline,
-                  size: mainScreenIconsSize,
-                ),
+                Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    width: 55,
+                    child: Text(
+                      this.players.toString(),
+                      style: TextStyle(fontSize: 20),
+                      textAlign: TextAlign.center,
+                    )),
+                IconButton(
+                  padding: const EdgeInsets.all(0.0),
+                  icon:
+                      Icon(Icons.add_circle_outline, size: mainScreenIconsSize),
+                  onPressed: () => _inc(),
+                )
               ],
             ))
           ],
@@ -142,6 +172,9 @@ class LocationsIsland extends StatefulWidget {
 }
 
 class _LocationsIslandState extends State<LocationsIsland> {
+  List<int> _selectedItems = [];
+  List<bool> _isActive = [false, false];
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -158,32 +191,42 @@ class _LocationsIslandState extends State<LocationsIsland> {
             Row(
               //scrollDirection: Axis.horizontal,
               children: [
-                _location(Icons.location_city, "В городе"),
-                _location(Icons.language_sharp, "Страны"),
+                _location(Icons.location_city, "В городе", 0),
+                _location(Icons.language_sharp, "Страны", 1),
               ],
             )
           ],
         ));
   }
 
-  _location(IconData icon, String title) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 20, horizontal: 7),
-      padding: EdgeInsets.symmetric(vertical: 20, horizontal: 15),
-      decoration: BoxDecoration(
-        //border: Border.all(color: Color(0xE8E8E8)),
-        border:
-            Border.all(color: Colors.black45), // Wi // Will work, width: 1),
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Column(
-        children: [
-          Icon(
-            icon,
-            size: 50,
-          ),
-          Text(title)
-        ],
+  _location(IconData icon, String title, int index) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          this._isActive[index] = !this._isActive[index];
+        });
+      },
+      child: Container(
+        margin: EdgeInsets.symmetric(vertical: 20, horizontal: 7),
+        padding: EdgeInsets.symmetric(vertical: 20, horizontal: 15),
+        width: 100,
+        decoration: BoxDecoration(
+          //border: Border.all(color: Color(0xE8E8E8)),
+          border: this._isActive[index]
+              ? Border.all(color: enabledColor)
+              : Border.all(color: disabledColor), // Wi // Will work, width: 1),
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              size: 50,
+              color: this._isActive[index] ? enabledColor : disabledColor,
+            ),
+            Text(title)
+          ],
+        ),
       ),
     );
   }
@@ -197,6 +240,22 @@ class TimerIsland extends StatefulWidget {
 }
 
 class _TimerIslandState extends State<TimerIsland> {
+  int minutes = 3;
+  int maxMinutes = 7;
+  int minMinutes = 1;
+
+  void _inc() {
+    setState(() {
+      minutes < maxMinutes ? minutes += 1 : minutes;
+    });
+  }
+
+  void _dec() {
+    setState(() {
+      minutes > minMinutes ? minutes -= 1 : minutes;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -219,19 +278,70 @@ class _TimerIslandState extends State<TimerIsland> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  Icon(
-                    Icons.do_not_disturb_on_outlined,
-                    size: mainScreenIconsSize,
+                  IconButton(
+                    padding: const EdgeInsets.all(0.0),
+                    icon: Icon(Icons.do_not_disturb_on_outlined,
+                        size: mainScreenIconsSize,
+                        color:
+                            minutes > minMinutes ? Colors.black : Colors.grey),
+                    onPressed: () => _dec(),
                   ),
-                  Text("3 минуты", style: TextStyle(fontSize: 20)),
-                  Icon(
-                    Icons.add_circle_outline,
-                    size: mainScreenIconsSize,
-                  ),
+                  Text("${minutes} минуты", style: TextStyle(fontSize: 20)),
+                  IconButton(
+                    padding: const EdgeInsets.all(0.0),
+                    icon: Icon(Icons.add_circle_outline,
+                        size: mainScreenIconsSize),
+                    onPressed: () => _inc(),
+                  )
                 ],
               ),
             )
           ],
         ));
+  }
+}
+
+class TimerIsland_v2 extends StatefulWidget {
+  const TimerIsland_v2({Key? key}) : super(key: key);
+
+  @override
+  State<TimerIsland_v2> createState() => _TimerIsland_v2State();
+}
+
+class _TimerIsland_v2State extends State<TimerIsland_v2> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        margin: cardMargin(),
+        padding: cardPaddding(),
+        decoration: cardDecoration(),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Таймер",
+                  style: TextStyle(fontSize: 20),
+                ),
+              ],
+            ),
+            Container(
+              height: 100.0,
+              margin: const EdgeInsets.symmetric(vertical: 15, horizontal: 25),
+              child: ListView(scrollDirection: Axis.horizontal,
+                  //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [timerButton(1), timerButton(3), timerButton(5)]),
+            )
+          ],
+        ));
+  }
+
+  timerButton(int value) {
+    return Container(
+        margin: cardMargin(),
+        padding: cardPaddding(),
+        decoration: cardDecoration(),
+        child: Center(child: Text(value.toString())));
   }
 }

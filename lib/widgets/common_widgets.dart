@@ -20,3 +20,10 @@ Decoration cardDecoration() {
         ),
       ]);
 }
+
+EdgeInsetsGeometry cardPaddding() => EdgeInsets.all(20);
+EdgeInsetsGeometry cardMargin() =>
+    EdgeInsets.symmetric(vertical: 10, horizontal: 20);
+
+var enabledColor = Colors.black;
+var disabledColor = Colors.black38;
