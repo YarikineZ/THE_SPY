@@ -1,9 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../widgets/common_widgets.dart';
 import 'roles_page.dart';
 
+class Model {
+  final int players;
+  final int timer;
+
+  Model({
+    required this.players,
+    required this.timer,
+  });
+
+  Model copyWith({
+    int? players,
+    int? timer,
+  }) {
+    return Model(
+      players: players ?? this.players,
+      timer: timer ?? this.timer,
+    );
+  }
+}
+
 class StartPage extends StatefulWidget {
-  const StartPage({Key? key}) : super(key: key);
+  //const StartPage({Key? key}) : super(key: key);
   static const routeName = '/start';
 
   @override
@@ -11,18 +32,48 @@ class StartPage extends StatefulWidget {
 }
 
 class _StartPageState extends State<StartPage> {
-  Widget playersIsland = PlayersIsland();
-  Widget locationIsland = LocationsIsland();
-  Widget timerIsland = TimerIsland();
+  var model = Model(
+    players: 3,
+    timer: 3,
+  );
 
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    List<TextEditingController> _controllers;
+  void inc_players() {
+    model = model.copyWith(players: model.players + 1);
+    setState(() {});
   }
 
+  void dec_players() {
+    model = model.copyWith(players: model.players - 1);
+    setState(() {});
+  }
+
+  void goNext() {
+    Navigator.pushNamed(
+      context,
+      RolesScreen.routeName,
+      arguments: model,
+    );
+  }
+
+// тут же напишем функции, через которые будем влиять на цифры
+
+  @override
+  Widget build(BuildContext context) => MultiProvider(
+        providers: [
+          Provider.value(value: this),
+          Provider.value(value: model),
+        ],
+        child: const _View(),
+      );
+}
+
+class _View extends StatelessWidget {
+  const _View({Key? key}) : super(key: key);
+
+  @override
   Widget build(BuildContext context) {
+    final state = context.read<_StartPageState>();
+
     return SafeArea(
         child: Scaffold(
       appBar: AppBar(
@@ -42,10 +93,9 @@ class _StartPageState extends State<StartPage> {
       body: ListView(
         physics: ClampingScrollPhysics(),
         children: [
-          playersIsland,
-          locationIsland,
-          timerIsland,
-          //TimerIsland_v2(),
+          PlayersIsland(),
+          //LocationsIsland(),
+          //TimerIsland(),
         ],
       ),
       bottomSheet: BottomSheet(5),
@@ -53,74 +103,13 @@ class _StartPageState extends State<StartPage> {
   }
 }
 
-class BottomSheet extends StatelessWidget {
-  const BottomSheet(int players, {Key? key}) : super(key: key);
-
+class PlayersIsland extends StatelessWidget {
+  const PlayersIsland({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 15, horizontal: 27),
-      //color: Colors.red,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          TextButton(
-              onPressed: () {},
-              child: Text(
-                "Очистить",
-                style: TextStyle(
-                  color: Colors.black45,
-                  fontSize: 18,
-                  decoration: TextDecoration.underline,
-                ),
-              )),
-          ElevatedButton(
-              onPressed: () {},
-              child: Container(
-                margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 7),
-                child: Row(
-                  children: [
-                    Text(
-                      'Начать   ',
-                      style: TextStyle(fontSize: 18),
-                    ),
-                    Icon(Icons.play_circle),
-                  ],
-                ),
-              ),
-              style: ElevatedButton.styleFrom(primary: Colors.pinkAccent))
-        ],
-      ),
-    );
-  }
-}
+    final state = context.read<_StartPageState>();
+    final players = context.select((Model value) => value.players);
 
-class PlayersIsland extends StatefulWidget {
-  const PlayersIsland({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  State<PlayersIsland> createState() => _PlayersIslandState();
-}
-
-class _PlayersIslandState extends State<PlayersIsland> {
-  int players = 3;
-
-  void _inc() {
-    setState(() {
-      players += 1;
-    });
-  }
-
-  void _dec() {
-    setState(() {
-      players > 3 ? players -= 1 : players;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Container(
         margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
         padding: const EdgeInsets.all(20),
@@ -141,13 +130,13 @@ class _PlayersIslandState extends State<PlayersIsland> {
                   icon: Icon(Icons.do_not_disturb_on_outlined,
                       size: mainScreenIconsSize,
                       color: players > 3 ? Colors.black : Colors.grey),
-                  onPressed: () => _dec(),
+                  onPressed: () => state.dec_players(),
                 ),
                 Container(
                     padding: const EdgeInsets.symmetric(horizontal: 15),
                     width: 55,
                     child: Text(
-                      this.players.toString(),
+                      players.toString(),
                       style: TextStyle(fontSize: 20),
                       textAlign: TextAlign.center,
                     )),
@@ -155,7 +144,7 @@ class _PlayersIslandState extends State<PlayersIsland> {
                   padding: const EdgeInsets.all(0.0),
                   icon:
                       Icon(Icons.add_circle_outline, size: mainScreenIconsSize),
-                  onPressed: () => _inc(),
+                  onPressed: () => state.inc_players(),
                 )
               ],
             ))
@@ -164,14 +153,12 @@ class _PlayersIslandState extends State<PlayersIsland> {
   }
 }
 
-class LocationsIsland extends StatefulWidget {
+/*
+Видимо надо перееписать?
+
+class LocationsIsland extends StatelessWidget {
   const LocationsIsland({Key? key}) : super(key: key);
 
-  @override
-  State<LocationsIsland> createState() => _LocationsIslandState();
-}
-
-class _LocationsIslandState extends State<LocationsIsland> {
   List<int> _selectedItems = [];
   List<bool> _isActive = [false, false];
 
@@ -232,32 +219,13 @@ class _LocationsIslandState extends State<LocationsIsland> {
   }
 }
 
-class TimerIsland extends StatefulWidget {
+class TimerIsland extends StatelessWidget {
   const TimerIsland({Key? key}) : super(key: key);
 
   @override
-  State<TimerIsland> createState() => _TimerIslandState();
-}
-
-class _TimerIslandState extends State<TimerIsland> {
-  int minutes = 3;
-  int maxMinutes = 7;
-  int minMinutes = 1;
-
-  void _inc() {
-    setState(() {
-      minutes < maxMinutes ? minutes += 1 : minutes;
-    });
-  }
-
-  void _dec() {
-    setState(() {
-      minutes > minMinutes ? minutes -= 1 : minutes;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final minutes = context.select((Model value) => value.timer);
+
     return Container(
         margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
         padding: const EdgeInsets.all(20),
@@ -281,17 +249,15 @@ class _TimerIslandState extends State<TimerIsland> {
                   IconButton(
                     padding: const EdgeInsets.all(0.0),
                     icon: Icon(Icons.do_not_disturb_on_outlined,
-                        size: mainScreenIconsSize,
-                        color:
-                            minutes > minMinutes ? Colors.black : Colors.grey),
-                    onPressed: () => _dec(),
+                        size: mainScreenIconsSize, color: Colors.black),
+                    onPressed: () => {},
                   ),
                   Text("${minutes} минуты", style: TextStyle(fontSize: 20)),
                   IconButton(
                     padding: const EdgeInsets.all(0.0),
                     icon: Icon(Icons.add_circle_outline,
                         size: mainScreenIconsSize),
-                    onPressed: () => _inc(),
+                    onPressed: () => {},
                   )
                 ],
               ),
@@ -301,47 +267,49 @@ class _TimerIslandState extends State<TimerIsland> {
   }
 }
 
-class TimerIsland_v2 extends StatefulWidget {
-  const TimerIsland_v2({Key? key}) : super(key: key);
 
-  @override
-  State<TimerIsland_v2> createState() => _TimerIsland_v2State();
-}
+*/
+class BottomSheet extends StatelessWidget {
+  const BottomSheet(int players, {Key? key}) : super(key: key);
 
-class _TimerIsland_v2State extends State<TimerIsland_v2> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-        margin: cardMargin(),
-        padding: cardPaddding(),
-        decoration: cardDecoration(),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Таймер",
-                  style: TextStyle(fontSize: 20),
-                ),
-              ],
-            ),
-            Container(
-              height: 100.0,
-              margin: const EdgeInsets.symmetric(vertical: 15, horizontal: 25),
-              child: ListView(scrollDirection: Axis.horizontal,
-                  //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [timerButton(1), timerButton(3), timerButton(5)]),
-            )
-          ],
-        ));
-  }
+    final state = context.read<_StartPageState>();
+    final players = context.select((Model value) => value.players);
 
-  timerButton(int value) {
     return Container(
-        margin: cardMargin(),
-        padding: cardPaddding(),
-        decoration: cardDecoration(),
-        child: Center(child: Text(value.toString())));
+      margin: const EdgeInsets.symmetric(vertical: 15, horizontal: 27),
+      //color: Colors.red,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          TextButton(
+              onPressed: () {},
+              child: Text(
+                "Очистить",
+                style: TextStyle(
+                  color: Colors.black45,
+                  fontSize: 18,
+                  decoration: TextDecoration.underline,
+                ),
+              )),
+          ElevatedButton(
+              onPressed: state.goNext,
+              style: ElevatedButton.styleFrom(primary: Colors.pinkAccent),
+              child: Container(
+                margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 7),
+                child: Row(
+                  children: const [
+                    Text(
+                      'Начать   ',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                    Icon(Icons.play_circle),
+                  ],
+                ),
+              ))
+        ],
+      ),
+    );
   }
 }
