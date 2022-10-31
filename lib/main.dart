@@ -5,24 +5,23 @@ import 'package:the_spy/pages/start_page.dart';
 import 'package:the_spy/pages/rules_page.dart';
 import 'package:the_spy/pages/roles_page.dart';
 import 'package:the_spy/pages/timer_page.dart';
-//import 'package:the_spy/pages/simple_form.dart';
 
 void main() => runApp(MaterialApp(
       theme: ThemeData.light(),
       debugShowCheckedModeBanner: false,
-      home: const StartPage(),
+      home: StartPage(),
       routes: {
-        StartPage.routeName: (context) => const StartPage(),
-        RulesScreen.routeName: (context) => const RulesScreen(),
-        TimerPage.routeName: (context) => const TimerPage(),
+        StartPage.routeName: (context) => StartPage(),
+        RulesScreen.routeName: (context) => RulesScreen(),
+        //TimerPage.routeName: (context) =>  TimerPage(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == RolesScreen.routeName) {
-          final players = settings.arguments as List;
+          final mainScreenData = settings.arguments as Model;
           return MaterialPageRoute(
             builder: (context) {
               return RolesScreen(
-                players: players,
+                model: mainScreenData,
               );
             },
           );
