@@ -1,116 +1,188 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:swipe_deck/swipe_deck.dart';
 import 'dart:math';
+import 'start_page.dart';
+import '../widgets/common_widgets.dart';
+
+final borderRadius = BorderRadius.circular(20.0);
+const openText = [
+  "Игрок 1",
+  "Игрок 2",
+  "Игрок 3",
+  "Игрок 4",
+];
+
+const closedText = [
+  "Бар",
+  "Шпион",
+  "Бар",
+  "Бар",
+];
+
+class cardModel {
+  final int num;
+  final String location;
+  bool isSpy;
+
+  cardModel({
+    required this.num,
+    required this.location,
+    required this.isSpy,
+  });
+
+  @override
+  String toString() {
+    return 'Student: {num: $num, location: $location, isSpy: $isSpy }';
+  }
+}
+
+///////////
 
 class RolesScreen extends StatefulWidget {
   static const routeName = '/roles';
-  final List players;
+  //final int players;
+  final Model model;
 
-  const RolesScreen({super.key, required this.players});
+  const RolesScreen({super.key, required this.model});
 
   @override
   State<RolesScreen> createState() => _RolesScreenState();
 }
 
 class _RolesScreenState extends State<RolesScreen> {
-  @override
-  Widget build(BuildContext context) {
-    final PageController controller = PageController();
-    //логичнее генерировать роли игроков на уровне выше, но у меня не получилось
-    final List roles = generateRoles(widget.players.length);
+  List<cardModel> cards = [];
+  List avaliableLocations = [
+    "Самолет",
+    "Бар",
+    "Завод",
+    "Офис",
+    "Больница",
+    "Стадион",
+    "Караоке"
+  ];
 
-    return Scaffold(
-        appBar: AppBar(
-          title: Text("Распределение ролей"),
-          centerTitle: true,
-          actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.home))],
-        ),
-        body: widget.players.isNotEmpty
-            ? _scrollWidget(players: widget.players, roles: roles)
-            : Text("Players empty"));
-  }
-
-  List generateRoles(int lenth) {
-    //Возвращает информацию для игроков. Всем локацию и одному ШПИОН
-    //надо обращаться из инициализатора виджета а не состояния
-    List avaliableLocations = [
-      "Самолет",
-      "Бар",
-      "Завод",
-      "Офис",
-      "Больница",
-      "Стадион",
-      "Караоке"
-    ];
-
+  void _generateCardsData(int cardsNumber) {
     Random random = new Random();
     String chosedLocation =
         avaliableLocations[random.nextInt(avaliableLocations.length)];
-    List playersInfo =
-        List<String>.generate(lenth, (int index) => chosedLocation);
-    int spyPosition = random.nextInt(lenth);
-    playersInfo[spyPosition] = "Шпион";
-    print(playersInfo);
-    return playersInfo;
-  }
-}
 
-class _scrollWidget extends StatefulWidget {
-  final List players;
-  final List roles;
-  //видимо надо генерировать роли где-то тут в конструкторе
-  const _scrollWidget({Key? key, required this.players, required this.roles})
-      : super(key: key);
+    // выберем локацию
+    for (var i = 1; i <= cardsNumber; i++) {
+      cards.add(cardModel(num: i, location: chosedLocation, isSpy: false));
+    }
+    // сделаем одного шпиона
+
+    int spyPosition = random.nextInt(cardsNumber);
+    cards[spyPosition].isSpy = true;
+
+    print(cards);
+  }
 
   @override
-  State<_scrollWidget> createState() => _scrollWidgetState();
-}
-
-class _scrollWidgetState extends State<_scrollWidget> {
-  int playerCounter = 0;
+  void initState() {
+    _generateCardsData(widget.model.players);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final PageController controller = PageController();
-    return PageView(
-      controller: controller,
-      scrollDirection: Axis.vertical,
-      children: [
-        Center(
-            child:
-                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Text("Игрок ${widget.players[playerCounter].toString()}"),
-          SizedBox(height: 50.0),
-          Icon(
-            Icons.swipe_up,
-            size: 50,
-          )
-        ])),
-        Center(
-            child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(widget.roles[playerCounter]),
-            //if (playerCounter < widget.players.length) {
+    return Scaffold(
+        // body: Center(
+        //   child: Text(widget.model.players.toString()),
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.black,
+          elevation: 0,
+        ),
+        body: Center(
+            child: SwipeDeck(
+          startIndex: 0,
+          emptyIndicator: Container(
+            child: Center(
+              child: Text("Nothing Here"),
+            ),
+          ),
+          cardSpreadInDegrees: 5, // Change the Spread of Background Cards
+          onSwipeLeft: () {
+            print("USER SWIPED LEFT -> GOING TO NEXT WIDGET");
+          },
+          onSwipeRight: () {
+            print("USER SWIPED RIGHT -> GOING TO PREVIOUS WIDGET");
+          },
+          widgets: cards
+              .map((e) => _Card(
+                    cardData: e,
+                  ))
+              .toList(),
+        )));
+  }
+}
 
-            ElevatedButton(
-                child: playerCounter < widget.players.length - 1
-                    ? Text(
-                        'Передай устройство игроку ${widget.players[playerCounter + 1]}')
-                    : Text("Начать игру"),
-                onLongPress: () {
-                  if (playerCounter < widget.players.length - 1) {
-                    controller.jumpToPage(0);
-                    setState(() {
-                      playerCounter++;
-                    });
-                  } else {
-                    Navigator.pushNamed(context, '/timer');
-                  }
-                },
-                onPressed: () {})
-          ],
-        )),
-      ],
+class _Card extends StatefulWidget {
+  final cardModel cardData;
+
+  const _Card({super.key, required this.cardData});
+
+  @override
+  State<_Card> createState() => __CardState();
+}
+
+class __CardState extends State<_Card> {
+  bool isBack = true;
+  double angle = 0;
+
+  void _flip() {
+    setState(() {
+      angle = (angle + pi) % (2 * pi);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      //onTap: _flip,
+      onLongPress: _flip,
+      onLongPressUp: _flip,
+      child: TweenAnimationBuilder(
+          tween: Tween<double>(begin: 0, end: angle),
+          duration: Duration(milliseconds: 400),
+          curve: Curves.easeOutBack,
+          builder: (BuildContext context, double val, __) {
+            //here we will change the isBack val so we can change the content of the card
+            if (val >= (pi / 2)) {
+              isBack = false;
+            } else {
+              isBack = true;
+            }
+            return (Transform(
+              //let's make the card flip by it's center
+              alignment: Alignment.center,
+              transform: Matrix4.identity()
+                ..setEntry(3, 2, 0.001)
+                ..rotateX(val),
+              child: Center(
+                child: Container(
+                    child: isBack
+                        ? Container(
+                            decoration: cardDecoration(),
+                            child: Center(
+                                child: Text(widget.cardData.num.toString())),
+                          )
+                        : Transform(
+                            alignment: Alignment.center,
+                            transform: Matrix4.identity()..rotateX(pi),
+                            child: Container(
+                              decoration: cardDecoration(),
+                              child: widget.cardData.isSpy
+                                  ? const Center(child: Text('Шпион'))
+                                  : Center(
+                                      child: Text(widget.cardData.location)),
+                            ),
+                          ) //else we will display it here,
+                    ),
+              ),
+            ));
+          }),
     );
   }
 }
