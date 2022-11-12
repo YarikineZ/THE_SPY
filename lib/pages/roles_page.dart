@@ -2,7 +2,7 @@
 import 'package:swipe_deck/swipe_deck.dart';
 import 'dart:math';
 import 'start_page.dart';
-import '../widgets/common_widgets.dart';
+import '../utils/theme.dart';
 
 final borderRadius = BorderRadius.circular(20.0);
 const openText = [
@@ -164,7 +164,7 @@ class __CardState extends State<_Card> {
                 child: Container(
                     child: isBack
                         ? Container(
-                            decoration: cardDecoration(),
+                            decoration: cardDecoration(context),
                             child: Center(
                                 child: Text(widget.cardData.num.toString())),
                           )
@@ -172,7 +172,7 @@ class __CardState extends State<_Card> {
                             alignment: Alignment.center,
                             transform: Matrix4.identity()..rotateX(pi),
                             child: Container(
-                              decoration: cardDecoration(),
+                              decoration: cardDecoration(context),
                               child: widget.cardData.isSpy
                                   ? const Center(child: Text('Шпион'))
                                   : Center(

@@ -1,25 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../widgets/common_widgets.dart';
+import '../utils/theme.dart';
 import 'roles_page.dart';
+
+class Locations {
+  // final List logo = ["tmp", "tmp", "tmp", "tmp"];
+  // final List name = ["Природа", "Страны", "Города России", "Спорт"];
+  // final List isActive = [true, false, false, false];
+  final List logo;
+  final List name;
+  final List isActive;
+
+  Locations({required this.logo, required this.name, required this.isActive});
+
+  Locations copyWith({List? logo, List? name, List? isActive}) {
+    return Locations(
+        logo: logo ?? this.logo,
+        name: name ?? this.name,
+        isActive: isActive ?? this.isActive);
+  }
+}
 
 class Model {
   final int players;
+  final int spies;
   final int timer;
 
   Model({
     required this.players,
+    required this.spies,
     required this.timer,
   });
 
-  Model copyWith({
-    int? players,
-    int? timer,
-  }) {
+  Model copyWith({int? players, int? spies, int? timer}) {
     return Model(
-      players: players ?? this.players,
-      timer: timer ?? this.timer,
-    );
+        players: players ?? this.players,
+        spies: spies ?? this.spies,
+        timer: timer ?? this.timer);
   }
 }
 
@@ -34,8 +52,14 @@ class StartPage extends StatefulWidget {
 class _StartPageState extends State<StartPage> {
   var model = Model(
     players: 3,
+    spies: 1,
     timer: 3,
   );
+
+  var locations = Locations(
+      logo: ["tmp", "tmp", "tmp", "tmp"],
+      name: ["Природа", "Страны", "Города России", "Спорт"],
+      isActive: [true, false, false, false]);
 
   void inc_players() {
     model = model.copyWith(players: model.players + 1);
@@ -47,6 +71,26 @@ class _StartPageState extends State<StartPage> {
     setState(() {});
   }
 
+  void inc_spies() {
+    model = model.copyWith(spies: model.spies + 1);
+    setState(() {});
+  }
+
+  void dec_spies() {
+    model = model.copyWith(spies: model.spies - 1);
+    setState(() {});
+  }
+
+  void inc_timer() {
+    model = model.copyWith(timer: model.timer + 1);
+    setState(() {});
+  }
+
+  void dec_timer() {
+    model = model.copyWith(timer: model.timer - 1);
+    setState(() {});
+  }
+
   void goNext() {
     Navigator.pushNamed(
       context,
@@ -55,6 +99,12 @@ class _StartPageState extends State<StartPage> {
     );
   }
 
+  void toggleLocation(int num) {
+    var activeList = locations.isActive;
+    activeList[num] = !activeList[num];
+    locations = locations.copyWith(isActive: activeList);
+    setState(() {});
+  }
 // тут же напишем функции, через которые будем влиять на цифры
 
   @override
@@ -62,6 +112,7 @@ class _StartPageState extends State<StartPage> {
         providers: [
           Provider.value(value: this),
           Provider.value(value: model),
+          Provider.value(value: locations),
         ],
         child: const _View(),
       );
@@ -77,239 +128,204 @@ class _View extends StatelessWidget {
     return SafeArea(
         child: Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.black,
-        title: const Text("Новая игра"),
-        elevation: 0,
-        leading: IconButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/rules');
-            },
-            icon: Icon(
-              Icons.help_outline,
-              size: mainScreenIconsSize,
-            )),
-      ),
-      body: ListView(
-        physics: ClampingScrollPhysics(),
-        children: [
-          PlayersIsland(),
-          //LocationsIsland(),
-          //TimerIsland(),
+        centerTitle: false,
+        //backgroundColor: Colors.red,
+        title: Container(
+          margin: EdgeInsets.only(left: 10.0),
+          child: const Text(
+            "Шпион",
+          ),
+        ),
+        actions: [
+          Container(
+            margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+            child: OutlinedButton(
+                style: rulesOutlinedButtonStyle,
+                onPressed: () {
+                  Navigator.pushNamed(context, '/rules');
+                },
+                child: const Text('Правила')),
+          )
         ],
+        elevation: 0,
       ),
-      bottomSheet: BottomSheet(5),
+      body: SafeArea(
+        child: ListView(
+          physics: ClampingScrollPhysics(),
+          children: [
+            NumericIsland(),
+            LocationsIsland(),
+          ],
+        ),
+      ),
+      bottomSheet: BottomSheet(),
     ));
   }
 }
 
-class PlayersIsland extends StatelessWidget {
-  const PlayersIsland({Key? key}) : super(key: key);
+class NumericIsland extends StatelessWidget {
+  const NumericIsland({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     final state = context.read<_StartPageState>();
     final players = context.select((Model value) => value.players);
+    final spies = context.select((Model value) => value.spies);
+    final timer = context.select((Model value) => value.timer);
 
     return Container(
         margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
         padding: const EdgeInsets.all(20),
-        decoration: cardDecoration(),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              "Игроки",
-              style: TextStyle(fontSize: 20),
-            ),
-            Container(
-                child: Row(
-              children: [
-                IconButton(
-                  padding: const EdgeInsets.all(0.0),
-                  icon: Icon(Icons.do_not_disturb_on_outlined,
-                      size: mainScreenIconsSize,
-                      color: players > 3 ? Colors.black : Colors.grey),
-                  onPressed: () => state.dec_players(),
-                ),
-                Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
-                    width: 55,
-                    child: Text(
-                      players.toString(),
-                      style: TextStyle(fontSize: 20),
-                      textAlign: TextAlign.center,
-                    )),
-                IconButton(
-                  padding: const EdgeInsets.all(0.0),
-                  icon:
-                      Icon(Icons.add_circle_outline, size: mainScreenIconsSize),
-                  onPressed: () => state.inc_players(),
-                )
-              ],
-            ))
-          ],
-        ));
-  }
-}
-
-/*
-Видимо надо перееписать?
-
-class LocationsIsland extends StatelessWidget {
-  const LocationsIsland({Key? key}) : super(key: key);
-
-  List<int> _selectedItems = [];
-  List<bool> _isActive = [false, false];
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-        margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-        padding: const EdgeInsets.all(20),
-        decoration: cardDecoration(),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Text("Локации", style: TextStyle(fontSize: 20)),
-              ],
-            ),
-            Row(
-              //scrollDirection: Axis.horizontal,
-              children: [
-                _location(Icons.location_city, "В городе", 0),
-                _location(Icons.language_sharp, "Страны", 1),
-              ],
-            )
-          ],
-        ));
-  }
-
-  _location(IconData icon, String title, int index) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          this._isActive[index] = !this._isActive[index];
-        });
-      },
-      child: Container(
-        margin: EdgeInsets.symmetric(vertical: 20, horizontal: 7),
-        padding: EdgeInsets.symmetric(vertical: 20, horizontal: 15),
-        width: 100,
-        decoration: BoxDecoration(
-          //border: Border.all(color: Color(0xE8E8E8)),
-          border: this._isActive[index]
-              ? Border.all(color: enabledColor)
-              : Border.all(color: disabledColor), // Wi // Will work, width: 1),
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              size: 50,
-              color: this._isActive[index] ? enabledColor : disabledColor,
-            ),
-            Text(title)
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class TimerIsland extends StatelessWidget {
-  const TimerIsland({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final minutes = context.select((Model value) => value.timer);
-
-    return Container(
-        margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-        padding: const EdgeInsets.all(20),
-        decoration: cardDecoration(),
+        decoration: cardDecoration(context),
         child: Column(
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  "Игроки",
+                  style: Theme.of(context).textTheme.headline5,
+                ),
+                incDecButtons(players, 3, 10, state.inc_players,
+                    state.dec_players, context)
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  "Шпионы",
+                  style: Theme.of(context).textTheme.headline5,
+                ),
+                incDecButtons(
+                    spies, 1, 3, state.inc_spies, state.dec_spies, context)
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
                   "Таймер",
-                  style: TextStyle(fontSize: 20),
+                  style: Theme.of(context).textTheme.headline5,
                 ),
+                incDecButtons(
+                    timer, 1, 3, state.inc_timer, state.dec_timer, context)
+              ],
+            )
+          ],
+        ));
+  }
+
+  Widget incDecButtons(int value, int minValue, int maxValue, Function inc,
+      Function dec, context) {
+    return Row(children: [
+      IconButton(
+        padding: const EdgeInsets.all(0.0),
+        iconSize: mainScreenIconsSize,
+        color: iconColor,
+        icon:
+            value >= minValue ? Icon(Icons.remove_circle) : Icon(Icons.remove),
+        onPressed: value >= minValue ? () => dec() : () {},
+      ),
+      Container(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          width: 55,
+          child: Text(
+            value.toString(),
+            style: Theme.of(context).textTheme.headline5,
+            textAlign: TextAlign.center,
+          )),
+      IconButton(
+        padding: const EdgeInsets.all(0.0),
+        iconSize: mainScreenIconsSize,
+        color: iconColor,
+        icon: value <= maxValue ? Icon(Icons.add_circle) : Icon(Icons.add),
+        onPressed: value <= maxValue ? () => inc() : () {},
+      ),
+    ]);
+  }
+}
+
+class LocationsIsland extends StatelessWidget {
+  const LocationsIsland({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final state = context.read<_StartPageState>();
+    print("Location island builder");
+
+    return Container(
+        margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+        padding: const EdgeInsets.all(20),
+        decoration: cardDecoration(context),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 10.0),
+              child: Text(
+                "Локации",
+                style: Theme.of(context).textTheme.headline5,
+              ),
+            ),
+            Wrap(
+              spacing: 6.0,
+              //runSpacing: 6.0,
+              children: [
+                LocationShip(num: 0),
+                LocationShip(num: 1),
+                LocationShip(num: 2),
+                LocationShip(num: 3),
               ],
             ),
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: 15, horizontal: 25),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  IconButton(
-                    padding: const EdgeInsets.all(0.0),
-                    icon: Icon(Icons.do_not_disturb_on_outlined,
-                        size: mainScreenIconsSize, color: Colors.black),
-                    onPressed: () => {},
-                  ),
-                  Text("${minutes} минуты", style: TextStyle(fontSize: 20)),
-                  IconButton(
-                    padding: const EdgeInsets.all(0.0),
-                    icon: Icon(Icons.add_circle_outline,
-                        size: mainScreenIconsSize),
-                    onPressed: () => {},
-                  )
-                ],
-              ),
-            )
           ],
         ));
   }
 }
 
-
-*/
-class BottomSheet extends StatelessWidget {
-  const BottomSheet(int players, {Key? key}) : super(key: key);
+class LocationShip extends StatelessWidget {
+  final int num;
+  LocationShip({required this.num, Key? key});
 
   @override
   Widget build(BuildContext context) {
     final state = context.read<_StartPageState>();
-    final players = context.select((Model value) => value.players);
+    final locations = context.select((Locations locations) => locations);
+
+    return OutlinedButton(
+        style: locations.isActive[num]
+            ? activeLocationButtonStyle
+            : inactiveLocationButtonStyle,
+        onPressed: () => state.toggleLocation(num),
+        child: Text(locations.name[num]));
+  }
+}
+
+class BottomSheet extends StatelessWidget {
+  const BottomSheet({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final state = context.read<_StartPageState>();
+    final locations = context.select((Locations locations) => locations);
+
+    bool val = false;
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 15, horizontal: 27),
-      //color: Colors.red,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          TextButton(
-              onPressed: () {},
-              child: Text(
-                "Очистить",
-                style: TextStyle(
-                  color: Colors.black45,
-                  fontSize: 18,
-                  decoration: TextDecoration.underline,
-                ),
-              )),
-          ElevatedButton(
-              onPressed: state.goNext,
-              style: ElevatedButton.styleFrom(primary: Colors.pinkAccent),
-              child: Container(
-                margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 7),
-                child: Row(
-                  children: const [
-                    Text(
-                      'Начать   ',
-                      style: TextStyle(fontSize: 18),
-                    ),
-                    Icon(Icons.play_circle),
-                  ],
-                ),
-              ))
-        ],
-      ),
+      color: Theme.of(context).scaffoldBackgroundColor,
+      padding: const EdgeInsets.only(bottom: 70),
+      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        OutlinedButton(
+            onPressed: () {},
+            style: locations.isActive.any((element) => element)
+                ? activeStartButtonStyle
+                : inactiveStartButtonStyle,
+            child: Text("Начать Игру"))
+      ]
+          //style: ButtonStyle(textStyle: TextStyle(color: Colors.black)),
+          ),
     );
   }
 }

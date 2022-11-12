@@ -12,11 +12,15 @@ class _RulesScreenState extends State<RulesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Правила"), centerTitle: true),
+      appBar: AppBar(
+        title: Text("Правила"),
+        centerTitle: true,
+        backgroundColor: Colors.red,
+      ),
       body: Column(children: [
         Text(
-            "На этом экране будут правила игры. Это буут пролистывавемые карточки",
-            style: TextStyle(fontSize: 30)),
+          "На этом экране будут правила игры. Это буут пролистывавемые карточки",
+        ),
       ]),
     );
   }

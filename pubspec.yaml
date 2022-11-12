@@ -36,6 +36,8 @@ dependencies:
   cupertino_icons: ^1.0.2
   validators: ^2.0.0+1 #tmp
   circular_countdown_timer: ^0.2.2
+  #provider: ^5.0.0
+  swipe_deck: ^1.1.0
 
 dev_dependencies:
   flutter_test:
