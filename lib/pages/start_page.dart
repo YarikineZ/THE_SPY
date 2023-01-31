@@ -1,3 +1,5 @@
+import 'package:google_fonts/google_fonts.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -57,9 +59,9 @@ class _StartPageState extends State<StartPage> {
   );
 
   var locations = Locations(
-      logo: ["tmp", "tmp", "tmp", "tmp"],
-      name: ["Природа", "Страны", "Города России", "Спорт"],
-      isActive: [true, false, false, false]);
+      logo: ["🌳", "🌐", "🪆", "🚋", "⚽"],
+      name: ["Природа", "Страны", "Города России", "Транспорт", "Спорт"],
+      isActive: [true, false, false, false, false]);
 
   void inc_players() {
     model = model.copyWith(players: model.players + 1);
@@ -130,24 +132,24 @@ class _View extends StatelessWidget {
       appBar: AppBar(
         centerTitle: false,
         //backgroundColor: Colors.red,
-        title: Container(
-          margin: EdgeInsets.only(left: 10.0),
-          child: const Text(
-            "Шпион",
+        title: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Шпион",
+              ),
+              OutlinedButton(
+                  style: rulesOutlinedButtonStyle,
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/rules');
+                  },
+                  child: const Text('Правила')),
+            ],
           ),
         ),
-        actions: [
-          Container(
-            margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-            child: OutlinedButton(
-                style: rulesOutlinedButtonStyle,
-                onPressed: () {
-                  Navigator.pushNamed(context, '/rules');
-                },
-                child: const Text('Правила')),
-          )
-        ],
-        elevation: 0,
+        //elevation: 0,
       ),
       body: SafeArea(
         child: ListView(
@@ -184,7 +186,7 @@ class NumericIsland extends StatelessWidget {
               children: [
                 Text(
                   "Игроки",
-                  style: Theme.of(context).textTheme.headline5,
+                  style: Theme.of(context).textTheme.headline3,
                 ),
                 incDecButtons(players, 3, 10, state.inc_players,
                     state.dec_players, context)
@@ -196,7 +198,7 @@ class NumericIsland extends StatelessWidget {
               children: [
                 Text(
                   "Шпионы",
-                  style: Theme.of(context).textTheme.headline5,
+                  style: Theme.of(context).textTheme.headline3,
                 ),
                 incDecButtons(
                     spies, 1, 3, state.inc_spies, state.dec_spies, context)
@@ -206,12 +208,21 @@ class NumericIsland extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  "Таймер",
-                  style: Theme.of(context).textTheme.headline5,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Время игры",
+                      style: Theme.of(context).textTheme.headline3,
+                    ),
+                    Text(
+                      "Минуты",
+                      style: Theme.of(context).textTheme.headline5,
+                    ),
+                  ],
                 ),
                 incDecButtons(
-                    timer, 1, 3, state.inc_timer, state.dec_timer, context)
+                    timer, 1, 10, state.inc_timer, state.dec_timer, context)
               ],
             )
           ],
@@ -225,24 +236,23 @@ class NumericIsland extends StatelessWidget {
         padding: const EdgeInsets.all(0.0),
         iconSize: mainScreenIconsSize,
         color: iconColor,
-        icon:
-            value >= minValue ? Icon(Icons.remove_circle) : Icon(Icons.remove),
-        onPressed: value >= minValue ? () => dec() : () {},
+        icon: value > minValue ? Icon(Icons.remove_circle) : Icon(Icons.remove),
+        onPressed: value > minValue ? () => dec() : () {},
       ),
       Container(
           padding: const EdgeInsets.symmetric(horizontal: 15),
           width: 55,
           child: Text(
             value.toString(),
-            style: Theme.of(context).textTheme.headline5,
+            style: Theme.of(context).textTheme.headline3,
             textAlign: TextAlign.center,
           )),
       IconButton(
         padding: const EdgeInsets.all(0.0),
         iconSize: mainScreenIconsSize,
         color: iconColor,
-        icon: value <= maxValue ? Icon(Icons.add_circle) : Icon(Icons.add),
-        onPressed: value <= maxValue ? () => inc() : () {},
+        icon: value < maxValue ? Icon(Icons.add_circle) : Icon(Icons.add),
+        onPressed: value < maxValue ? () => inc() : () {},
       ),
     ]);
   }
@@ -267,7 +277,7 @@ class LocationsIsland extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 10.0),
               child: Text(
                 "Локации",
-                style: Theme.of(context).textTheme.headline5,
+                style: Theme.of(context).textTheme.headline3,
               ),
             ),
             Wrap(
@@ -278,6 +288,7 @@ class LocationsIsland extends StatelessWidget {
                 LocationShip(num: 1),
                 LocationShip(num: 2),
                 LocationShip(num: 3),
+                LocationShip(num: 4),
               ],
             ),
           ],
@@ -299,7 +310,17 @@ class LocationShip extends StatelessWidget {
             ? activeLocationButtonStyle
             : inactiveLocationButtonStyle,
         onPressed: () => state.toggleLocation(num),
-        child: Text(locations.name[num]));
+        child: Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text(
+              locations.logo[num],
+              style: emojiStyle,
+            ),
+            SizedBox(width: 5),
+            Text(locations.name[num]),
+          ],
+        ));
   }
 }
 
