@@ -23,10 +23,7 @@ class _RulesScreenState extends State<RulesScreen> {
           margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 30),
           padding: EdgeInsets.all(20.0),
           decoration: BoxDecoration(
-            border: Border.all(
-                strokeAlign: StrokeAlign.outside,
-                color: primaryGreen,
-                width: 1),
+            border: Border.all(color: primaryGreen, width: 1),
             borderRadius: BorderRadius.circular(15),
           ),
           child: Column(

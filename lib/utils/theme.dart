@@ -1,8 +1,8 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-ThemeData basicTheme() => ThemeData(
-    colorScheme: ColorScheme(
+ThemeData appTheme() => ThemeData(
+    colorScheme: const ColorScheme(
       brightness: Brightness.dark,
       primary: Colors.white, //текст в outined bontton
       onPrimary: Colors.red,
@@ -18,31 +18,40 @@ ThemeData basicTheme() => ThemeData(
 
     //brightness: Brightness.light, //не работает при перешлючении на DARK
 
-    bottomAppBarColor: Colors.red,
     cardColor: Color(0xFF1A021A),
     primaryColor: Colors.white, //Цвет контуров
-    backgroundColor: Colors.red, //
     scaffoldBackgroundColor: Color(0xFF1A021A),
     textTheme: const TextTheme(
-      bodyText1: TextStyle(color: Colors.red),
-      bodyText2: TextStyle(color: Colors.white), //просто текст
-      headline1: TextStyle(fontSize: 50, fontWeight: FontWeight.bold),
-      headline3: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-          fontFamily: 'Fraunces'),
-      headline5: TextStyle(fontSize: 16.0, fontWeight: FontWeight.normal),
-      headline6: TextStyle(
-          fontSize: 30.0, fontWeight: FontWeight.bold, fontFamily: 'Fraunces'),
+      headlineMedium: TextStyle(
+          fontSize: 20, fontWeight: FontWeight.bold, fontFamily: 'Fraunces'),
+      headlineSmall: TextStyle(
+          fontSize: 20, fontWeight: FontWeight.bold, fontFamily: 'Fraunces'),
+      // bodyText2: TextStyle(color: Colors.white), //просто текст
+      // headline1: TextStyle(fontSize: 50, fontWeight: FontWeight.bold),
+      // headline3: TextStyle(
+      //     fontSize: 20,
+      //     fontWeight: FontWeight.bold,
+      //     color: Colors.white,
+      //     fontFamily: 'Fraunces'),
+      // headline5: TextStyle(fontSize: 16.0, fontWeight: FontWeight.normal),
+      // headline6: TextStyle(
+      //     fontSize: 30.0, fontWeight: FontWeight.bold, fontFamily: 'Fraunces'),
     ));
 
 var iconColor = Color(0xFFA7E98F);
 var primaryGreen = Color(0xFFA7E98F);
-var secondaryWhite = Colors.white;
+var secondaryWhite = Color(0xFCF8EC);
+var backWallColor = Color(0x1A021A);
+var cardGreyColor = Color(0x200F21);
 
 var cardGrey = Color(0x200F21);
 var mainScreenIconsSize = 40.0;
+
+var islandH1Style = TextStyle(
+    fontFamily: "Roboto",
+    fontSize: 20.0,
+    fontWeight: FontWeight.bold,
+    color: secondaryWhite);
 
 var rulesTextStyle = TextStyle(
     fontFamily: "Roboto",
@@ -88,12 +97,12 @@ var activeLocationButtonStyle = OutlinedButton.styleFrom(
   side: BorderSide.none,
   shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.all(Radius.circular(15))),
-  primary: Colors.black,
+  foregroundColor: Colors.black,
 );
 
 var inactiveLocationButtonStyle = OutlinedButton.styleFrom(
     backgroundColor: Colors.transparent,
-    primary: Colors.white,
+    foregroundColor: Colors.white,
     shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(15))),
     side: BorderSide(color: Colors.white, width: 1.0));
@@ -108,7 +117,6 @@ Decoration cardDecoration(context) {
         width: 1), // Wi // Will work, width: 1),
     borderRadius: BorderRadius.circular(15),
     color: Color(0xFF200F21),
-    //color: Theme.of(context).scaffoldBackgroundColor,
   );
 }
 
