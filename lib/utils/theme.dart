@@ -59,6 +59,12 @@ var rulesTextStyle = TextStyle(
     fontWeight: FontWeight.bold,
     color: secondaryWhite);
 
+var playingCardsH1Style = const TextStyle(
+    fontFamily: "Fraunces",
+    fontSize: 24.0,
+    fontWeight: FontWeight.bold,
+    color: Colors.white);
+
 var rulesOutlinedButtonStyle = OutlinedButton.styleFrom(
   backgroundColor: Colors.transparent,
   primary: Colors.white,
@@ -70,8 +76,8 @@ var rulesOutlinedButtonStyle = OutlinedButton.styleFrom(
 );
 
 var activeStartButtonStyle = OutlinedButton.styleFrom(
+    foregroundColor: Colors.black,
     backgroundColor: Color(0xFFFF8D5B),
-    primary: Colors.black,
     textStyle:
         TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold), //по умолчанию
     shape: RoundedRectangleBorder(
@@ -81,8 +87,8 @@ var activeStartButtonStyle = OutlinedButton.styleFrom(
     padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 30.0));
 
 var inactiveStartButtonStyle = OutlinedButton.styleFrom(
+    foregroundColor: Colors.white,
     backgroundColor: Colors.transparent,
-    primary: Colors.white,
     textStyle: TextStyle(
         fontSize: 24.0,
         fontWeight: FontWeight.bold,
@@ -114,7 +120,16 @@ Decoration cardDecoration(context) {
     //border: Border.all(color: Color(0xE8E8E8)),
     border: Border.all(
         color: Theme.of(context).primaryColor,
-        width: 1), // Wi // Will work, width: 1),
+        width: 1), // Will work, width: 1),
+    borderRadius: BorderRadius.circular(15),
+    color: Color(0xFF200F21),
+  );
+}
+
+Decoration playingCardDecoration(context) {
+  return BoxDecoration(
+    //border: Border.all(color: Color(0xE8E8E8)),
+    border: Border.all(color: primaryGreen, width: 1), // Will work, width: 1),
     borderRadius: BorderRadius.circular(15),
     color: Color(0xFF200F21),
   );

@@ -6,10 +6,6 @@ import 'dart:math' as math;
 
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 
-// import 'package:the_spy/utils/tinder/card_swiper.dart';
-// import 'package:the_spy/utils/tinder/card_swiper_controller.dart';
-// import 'package:the_spy/utils/tinder/enums.dart';
-
 import 'package:the_spy/utils/theme.dart';
 import 'package:the_spy/widgets/flipping_card.dart';
 import 'package:the_spy/models/numerical_settings.dart';
@@ -53,7 +49,7 @@ class _DeckState extends State<Deck> {
     return SizedBox(
       width: width,
       height: height,
-      child: AppCard(
+      child: PlayingCard(
         value: value,
         onClearTap: () {
           setState(() {
@@ -88,7 +84,7 @@ class _DeckState extends State<Deck> {
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
       const visibleCardsCount = 3;
-      const aspectRatio = 2 / 1;
+      const aspectRatio = 102 / 63; //TODO  надо как-то по человечески
       final cardWidth = constraints.maxWidth * 0.8;
       final cardHeight = cardWidth * aspectRatio;
 
@@ -188,21 +184,25 @@ class DoneWidget extends StatelessWidget {
   }
 }
 
-class AppCard extends StatefulWidget {
-  const AppCard({
+//КАРТА
+//==================================
+
+class PlayingCard extends StatefulWidget {
+  const PlayingCard({
     Key key,
     this.value,
     this.onClearTap,
   }) : super(key: key);
 
-  final int value;
+  final int value; //поменять на параметры локации и игроков
   final VoidCallback onClearTap;
 
   @override
-  State<AppCard> createState() => _AppCardState();
+  State<PlayingCard> createState() => _PlayingCardState();
 }
 
-class _AppCardState extends State<AppCard> with TickerProviderStateMixin {
+class _PlayingCardState extends State<PlayingCard>
+    with TickerProviderStateMixin {
   AnimationController _flipAnimationController;
 
   var _isFlipped = false;
@@ -212,7 +212,7 @@ class _AppCardState extends State<AppCard> with TickerProviderStateMixin {
     super.initState();
     _flipAnimationController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 1),
+      duration: const Duration(milliseconds: 500),
       lowerBound: 0,
       upperBound: 1,
     )..addStatusListener((status) {
@@ -248,12 +248,18 @@ class _AppCardState extends State<AppCard> with TickerProviderStateMixin {
 
           Widget visibleCardSide;
           if (isFrontVisible) {
-            visibleCardSide = CardFront(index: widget.value);
+            visibleCardSide = CardLayoutBuilder(
+              flipped: false,
+              index: widget.value,
+            );
           } else {
             visibleCardSide = Transform(
               transform: Matrix4.rotationY(math.pi),
               alignment: Alignment.center,
-              child: CardRear(index: widget.value),
+              child: CardLayoutBuilder(
+                flipped: true,
+                index: widget.value,
+              ),
             );
           }
 
@@ -270,72 +276,59 @@ class _AppCardState extends State<AppCard> with TickerProviderStateMixin {
   }
 }
 
-class CardFront extends StatelessWidget {
-  const CardFront({
+class CardLayoutBuilder extends StatelessWidget {
+  CardLayoutBuilder({
     Key key,
     this.index,
+    //this.role,
+    this.flipped,
   }) : super(key: key);
 
   final int index;
+  //final String role;
+  bool flipped;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.all(
-          Radius.circular(24),
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'Рубашка $index',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: Colors.white,
-                ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
+        decoration: playingCardDecoration(context),
+        child: flipped ? _rearSide() : _frontSide());
   }
-}
 
-class CardRear extends StatelessWidget {
-  const CardRear({
-    Key key,
-    this.index,
-  });
-
-  final int index;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.amber,
-        borderRadius: BorderRadius.all(
-          Radius.circular(24),
-        ),
+  Widget _frontSide() {
+    return Stack(fit: StackFit.expand, children: [
+      Image.asset(
+        "assets/Card_img.png",
+        fit: BoxFit.fill,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'Оборот $index',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: Colors.black,
-                ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+      Positioned(
+          right: 30,
+          top: 30,
+          child: Text(
+            "$index",
+            style: playingCardsH1Style,
+          )),
+      Center(
+          child: Text(
+        "Нажми, чтобы\n узнать свою роль",
+        style: playingCardsH1Style,
+        textAlign: TextAlign.center,
+      ))
+    ]);
+  }
+
+  Widget _rearSide() {
+    return Stack(fit: StackFit.expand, children: [
+      Image.asset(
+        "assets/CivilCardBackgtound.png",
+        fit: BoxFit.fill,
       ),
-    );
+      Center(
+          child: Text(
+        "Игрок $index",
+        style: playingCardsH1Style,
+        textAlign: TextAlign.center,
+      ))
+    ]);
   }
 }
