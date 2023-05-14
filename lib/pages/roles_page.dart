@@ -1,188 +1,341 @@
-﻿import 'package:flutter/material.dart';
-import 'package:swipe_deck/swipe_deck.dart';
-import 'dart:math';
-import 'start_page.dart';
-import '../utils/theme.dart';
+﻿import 'dart:async';
 
-final borderRadius = BorderRadius.circular(20.0);
-const openText = [
-  "Игрок 1",
-  "Игрок 2",
-  "Игрок 3",
-  "Игрок 4",
-];
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'dart:math' as math;
 
-const closedText = [
-  "Бар",
-  "Шпион",
-  "Бар",
-  "Бар",
-];
+import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 
-class cardModel {
-  final int num;
-  final String location;
-  bool isSpy;
+// import 'package:the_spy/utils/tinder/card_swiper.dart';
+// import 'package:the_spy/utils/tinder/card_swiper_controller.dart';
+// import 'package:the_spy/utils/tinder/enums.dart';
 
-  cardModel({
-    required this.num,
-    required this.location,
-    required this.isSpy,
-  });
+import 'package:the_spy/utils/theme.dart';
+import 'package:the_spy/widgets/flipping_card.dart';
+import 'package:the_spy/models/numerical_settings.dart';
+import 'package:the_spy/models/locations.dart';
 
+class RolesPage extends StatelessWidget {
+  //const RolesPage({Key key}) : super(key: key);
   @override
-  String toString() {
-    return 'Student: {num: $num, location: $location, isSpy: $isSpy }';
+  Widget build(BuildContext context) {
+    // var numSettings = context.read<NumericalSettingsModel>();
+    // var locations = context.read<LocationsModel>();
+    // var chosenPack = locations.getRandomChosenPack();
+    // var randomLocation = locations.getRandomLocationInPack(chosenPack["id"]);
+
+    final cards = List.generate(20, (index) => index);
+
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+      ),
+      body: SafeArea(
+        child: Deck(cards: cards),
+      ),
+    );
   }
 }
 
-///////////
+class Deck extends StatefulWidget {
+  const Deck({Key key, this.cards}) : super(key: key);
 
-class RolesScreen extends StatefulWidget {
-  static const routeName = '/roles';
-  //final int players;
-  final Model model;
-
-  const RolesScreen({super.key, required this.model});
+  final List<int> cards;
 
   @override
-  State<RolesScreen> createState() => _RolesScreenState();
+  State<Deck> createState() => _DeckState();
 }
 
-class _RolesScreenState extends State<RolesScreen> {
-  List<cardModel> cards = [];
-  List avaliableLocations = [
-    "Самолет",
-    "Бар",
-    "Завод",
-    "Офис",
-    "Больница",
-    "Стадион",
-    "Караоке"
-  ];
+class _DeckState extends State<Deck> {
+  var _offset = 0;
 
-  void _generateCardsData(int cardsNumber) {
-    Random random = new Random();
-    String chosedLocation =
-        avaliableLocations[random.nextInt(avaliableLocations.length)];
-
-    // выберем локацию
-    for (var i = 1; i <= cardsNumber; i++) {
-      cards.add(cardModel(num: i, location: chosedLocation, isSpy: false));
-    }
-    // сделаем одного шпиона
-
-    int spyPosition = random.nextInt(cardsNumber);
-    cards[spyPosition].isSpy = true;
-
-    print(cards);
+  Widget _buildCard(int value, double width, double height) {
+    return SizedBox(
+      width: width,
+      height: height,
+      child: AppCard(
+        value: value,
+        onClearTap: () {
+          setState(() {
+            _offset++;
+          });
+        },
+      ),
+    );
   }
 
-  @override
-  void initState() {
-    _generateCardsData(widget.model.players);
-    super.initState();
+  Widget _buildItem({
+    int visibleIndex,
+    int dataIndex,
+    double width,
+    double height,
+    bool isLeaving,
+    bool isEntering,
+  }) {
+    return Align(
+      key: ValueKey('card_$dataIndex'),
+      alignment: Alignment.center,
+      child: DeckCardAnimationWrapper(
+        indexInVisibleStack: visibleIndex,
+        isLeaving: isLeaving,
+        isEntering: isEntering,
+        cardWidget: _buildCard(widget.cards[dataIndex], width, height),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        // body: Center(
-        //   child: Text(widget.model.players.toString()),
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          foregroundColor: Colors.black,
-          elevation: 0,
-        ),
-        body: Center(
-            child: SwipeDeck(
-          startIndex: 0,
-          emptyIndicator: Container(
-            child: Center(
-              child: Text("Nothing Here"),
-            ),
+    return LayoutBuilder(builder: (context, constraints) {
+      const visibleCardsCount = 3;
+      const aspectRatio = 2 / 1;
+      final cardWidth = constraints.maxWidth * 0.8;
+      final cardHeight = cardWidth * aspectRatio;
+
+      final cardsToShow = widget.cards.skip(_offset).take(visibleCardsCount);
+
+      final indexToLeave = _offset - 1;
+      final indexToEnter = _offset + visibleCardsCount;
+
+      return Stack(
+        children: [
+          const Align(
+            alignment: Alignment.center,
+            child: DoneWidget(),
           ),
-          cardSpreadInDegrees: 5, // Change the Spread of Background Cards
-          onSwipeLeft: () {
-            print("USER SWIPED LEFT -> GOING TO NEXT WIDGET");
-          },
-          onSwipeRight: () {
-            print("USER SWIPED RIGHT -> GOING TO PREVIOUS WIDGET");
-          },
-          widgets: cards
-              .map((e) => _Card(
-                    cardData: e,
-                  ))
-              .toList(),
-        )));
+          if (indexToEnter < widget.cards.length)
+            _buildItem(
+              visibleIndex: visibleCardsCount,
+              dataIndex: indexToEnter,
+              width: cardWidth,
+              height: cardHeight,
+              isLeaving: false,
+              isEntering: true,
+            ),
+          for (var i = cardsToShow.length - 1; i >= 0; i--)
+            _buildItem(
+              visibleIndex: i,
+              dataIndex: i + _offset,
+              width: cardWidth,
+              height: cardHeight,
+              isLeaving: false,
+              isEntering: false,
+            ),
+          if (indexToLeave > 0)
+            _buildItem(
+              visibleIndex: -1,
+              dataIndex: indexToLeave,
+              width: cardWidth,
+              height: cardHeight,
+              isLeaving: true,
+              isEntering: false,
+            ),
+        ],
+      );
+    });
   }
 }
 
-class _Card extends StatefulWidget {
-  final cardModel cardData;
+class DeckCardAnimationWrapper extends StatelessWidget {
+  const DeckCardAnimationWrapper({
+    Key key,
+    this.isLeaving,
+    this.isEntering,
+    this.indexInVisibleStack,
+    this.cardWidget,
+  }) : super(key: key);
 
-  const _Card({super.key, required this.cardData});
+  final Widget cardWidget;
+  final bool isLeaving;
+  final bool isEntering;
+  final int indexInVisibleStack;
 
   @override
-  State<_Card> createState() => __CardState();
+  Widget build(BuildContext context) {
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 250),
+      opacity: isEntering ? 0 : 1,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        transform: Matrix4.identity()
+          ..translate(
+            indexInVisibleStack * 16.0 +
+                (isLeaving ? -MediaQuery.of(context).size.width : 0),
+            indexInVisibleStack * 16.0,
+          ),
+        transformAlignment: Alignment.center,
+        child: cardWidget,
+      ),
+    );
+  }
 }
 
-class __CardState extends State<_Card> {
-  bool isBack = true;
-  double angle = 0;
+class DoneWidget extends StatelessWidget {
+  const DoneWidget({Key key}) : super(key: key);
 
-  void _flip() {
-    setState(() {
-      angle = (angle + pi) % (2 * pi);
-    });
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: const [
+        Text(
+          'ВСЁ!',
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+}
+
+class AppCard extends StatefulWidget {
+  const AppCard({
+    Key key,
+    this.value,
+    this.onClearTap,
+  }) : super(key: key);
+
+  final int value;
+  final VoidCallback onClearTap;
+
+  @override
+  State<AppCard> createState() => _AppCardState();
+}
+
+class _AppCardState extends State<AppCard> with TickerProviderStateMixin {
+  AnimationController _flipAnimationController;
+
+  var _isFlipped = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _flipAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+      lowerBound: 0,
+      upperBound: 1,
+    )..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          _isFlipped = true;
+        }
+      });
+  }
+
+  @override
+  void dispose() {
+    _flipAnimationController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      //onTap: _flip,
-      onLongPress: _flip,
-      onLongPressUp: _flip,
-      child: TweenAnimationBuilder(
-          tween: Tween<double>(begin: 0, end: angle),
-          duration: Duration(milliseconds: 400),
-          curve: Curves.easeOutBack,
-          builder: (BuildContext context, double val, __) {
-            //here we will change the isBack val so we can change the content of the card
-            if (val >= (pi / 2)) {
-              isBack = false;
-            } else {
-              isBack = true;
-            }
-            return (Transform(
-              //let's make the card flip by it's center
+      onTap: () {
+        if (_isFlipped) {
+          widget.onClearTap();
+          return;
+        }
+        if (!_flipAnimationController.isAnimating) {
+          _flipAnimationController.forward();
+        }
+      },
+      child: AnimatedBuilder(
+        animation: _flipAnimationController,
+        builder: (context, child) {
+          final animValue = _flipAnimationController.value;
+          final isFrontVisible = animValue < 0.5;
+
+          Widget visibleCardSide;
+          if (isFrontVisible) {
+            visibleCardSide = CardFront(index: widget.value);
+          } else {
+            visibleCardSide = Transform(
+              transform: Matrix4.rotationY(math.pi),
               alignment: Alignment.center,
-              transform: Matrix4.identity()
-                ..setEntry(3, 2, 0.001)
-                ..rotateX(val),
-              child: Center(
-                child: Container(
-                    child: isBack
-                        ? Container(
-                            decoration: cardDecoration(context),
-                            child: Center(
-                                child: Text(widget.cardData.num.toString())),
-                          )
-                        : Transform(
-                            alignment: Alignment.center,
-                            transform: Matrix4.identity()..rotateX(pi),
-                            child: Container(
-                              decoration: cardDecoration(context),
-                              child: widget.cardData.isSpy
-                                  ? const Center(child: Text('Шпион'))
-                                  : Center(
-                                      child: Text(widget.cardData.location)),
-                            ),
-                          ) //else we will display it here,
-                    ),
-              ),
-            ));
-          }),
+              child: CardRear(index: widget.value),
+            );
+          }
+
+          return Transform(
+            transform: Matrix4.identity()
+              ..setEntry(3, 2, 0.0005)
+              ..rotateY(animValue * math.pi),
+            alignment: Alignment.center,
+            child: visibleCardSide,
+          );
+        },
+      ),
+    );
+  }
+}
+
+class CardFront extends StatelessWidget {
+  const CardFront({
+    Key key,
+    this.index,
+  }) : super(key: key);
+
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.all(
+          Radius.circular(24),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Рубашка $index',
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: Colors.white,
+                ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class CardRear extends StatelessWidget {
+  const CardRear({
+    Key key,
+    this.index,
+  });
+
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.amber,
+        borderRadius: BorderRadius.all(
+          Radius.circular(24),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Оборот $index',
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: Colors.black,
+                ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 }
